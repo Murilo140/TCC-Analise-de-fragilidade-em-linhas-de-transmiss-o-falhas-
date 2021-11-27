@@ -1,0 +1,67 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import networkx as nx
+import scipy as sp
+from scipy import stats
+import numpy as np
+
+
+# carregar os nós
+with open("ieee57.csv") as f:
+     pares = f.read().splitlines()
+
+node_1 = []
+node_2 = []
+for i, cont in zip(pares, range(len(pares))):
+
+     if cont == 0:
+         continue  # ignora a primeira linha
+
+     node_1.append(i.split(';')[0])
+     node_2.append(i.split(';')[1])
+
+# cria um dataframe PANDAS para armazenar os dados
+df = pd.DataFrame(
+    {
+        'node_1': node_1,
+        'node_2': node_2,
+     }
+)
+
+#print(df)
+
+
+#plotar o grafo
+G = nx.from_pandas_edgelist(
+    df, 
+    "node_1", 
+    "node_2",
+    create_using=nx.Graph()
+    )
+plt.subplots(figsize = (25,15))
+# plota o grafo
+nx.draw(G, with_labels=True,  node_size = 1200, )
+
+plt.show()
+
+
+# Calculando o grau para cada nó
+deg = nx.degree(G)
+#print(np.array(deg))
+# Transforma num DataFrame (pandas)
+degree = pd.DataFrame.from_dict(deg)
+#idx, max_value= max(deg, key=lambda item: item[1])
+#print('Grau Máximo:', max_value, "Nó:",idx)
+
+degree.columns =['nó', 'grau'  ]
+degree.sort_values(by='grau', ascending = False)
+degree.to_excel('centralidade de grau.xlsx',encoding='utf-8',index=False)
+
+
+# Calcula as centralidades de intermediação
+bet = nx.betweenness_centrality(G, normalized=False)
+# Transforma em DataFrame (pandas)
+between = pd.DataFrame.from_dict(data=bet, orient='index')
+between.columns =['betweenness']
+between.sort_values(by='betweenness', ascending = False)
+between.to_excel('centralidade de betweenness.xlsx',encoding='utf-8')
